@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
 #include "../../data/graphs/graph.cpp"
 #define MAX_NEIGHBORS 4
 using namespace std;
@@ -33,21 +34,21 @@ class BFS{
             //Search until found
             while(1){
                 n_iterations++;
-                printf("Iteration %d\n", n_iterations);
+                //printf("Iteration %d\n", n_iterations);
                 //For all activate nodes
                 for(int a=0;a<active.size();a++){
-                    printf("\nActive node: %d, has %d neighbors:", active[a]->id, active[a]->n_neighbors);
+                    //printf("\nActive node: %d, has %d neighbors:", active[a]->id, active[a]->n_neighbors);
                     // Check neighbors
                     for(int n=0;n<active[a]->n_neighbors;n++){
                         node* neighbor = active[a]->neighbors[n];
                         int id = neighbor->id;
-                        printf("%d,", id);
+                        //printf("%d,", id);
                         // If not already active or visited
                         if(!in(id, active) && !in(id, visited))
                             next_nodes.push_back(neighbor);
                     }
                 }
-                printf("\n");
+                //printf("\n");
                 // Check to see if answer was in new nodes
                 for(int i=0;i<next_nodes.size();i++)
                     if(next_nodes[i]->id == stop)
@@ -59,7 +60,6 @@ class BFS{
                 for(int i=0;i<next_nodes.size();i++)
                     active.push_back(next_nodes[i]);
                 next_nodes.clear();
-                cin.get();
             }
 
             return 0;
@@ -67,6 +67,11 @@ class BFS{
 };
 
 int main(int argc, char **argv){
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::microseconds;
+
     node* nodes = new node[51];
     for(int i=0;i<51;i++)
         nodes[i].id = i;
@@ -81,7 +86,13 @@ int main(int argc, char **argv){
         }
     }
     BFS bfs;
+    auto t1 = high_resolution_clock::now();
     int s = bfs.search(&(nodes[0]), 15);
-    printf("Search took %d iterations",s);
+    auto t2 = high_resolution_clock::now();
+    auto time_int = duration_cast<microseconds>(t2 - t1);
+    int latency = (int)time_int.count();
+
+    printf("Search took %d iterations\n",s);
+    printf("Latency: %d us\n", latency);
     return s;
 }
