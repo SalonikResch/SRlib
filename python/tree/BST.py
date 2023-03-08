@@ -45,25 +45,26 @@ def leftRotation(a, parent):
     else:
         parent.right = b
 
-
+# Replace node u with v
 def transplant(root, u, v):
-    if u.parent is None:
-        root = v
-    elif u == u.parent.left:
+    if u.parent is None: # If u has no parent, it is the root
+        root = v # Make v the new root
+    elif u == u.parent.left: # Set v to whichever child u is of parent
         u.parent.left = v
     else:
         u.parent.right = v
-    if v is not None:
+    if v is not None: # Set v parent to u, if v is a node
         v.parent = u.parent
 
 
 def delete(root, node):
-    if node.left is None:
+    if node.left is None: # If < 2 children, just skip node
         transplant(root, node, node.right)
     elif node.right is None:
         transplant(root, node, node.left)
     else:
-        y = minimum(node.right)
+        y = minimum(node.right) # Find min node in right subtree as replacement
+        
         if y.parent != node:
             transplant(root, y, y.right)
             y.right = node.right
