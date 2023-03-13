@@ -15,7 +15,7 @@ def merge(a,b):
             r[rIdx] = a[aIdx]
             aIdx += 1
         rIdx += 1
-        
+
     # Fill in remaining values from one of the arrays
     for i in range(aIdx, len(a)):
         r[rIdx] = a[i]
@@ -27,7 +27,6 @@ def merge(a,b):
     return r
 
 def mergesort(a):
-    print(a)
     if len(a) == 2:
         if a[1] < a[0]:
             t = a[1]
@@ -37,7 +36,6 @@ def mergesort(a):
     if len(a) < 2:
         return a
     m = int(len(a)/2)
-    print('Splitting into',a[:m],'and',a[m:])
     l = mergesort(a[:m])
     r = mergesort(a[m:])
 
