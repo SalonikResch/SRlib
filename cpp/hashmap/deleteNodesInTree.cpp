@@ -18,9 +18,11 @@
  typedef unordered_map<int, bool> hashmap;
  typedef unordered_map<TreeNode*, bool> treemap;
 
+// Search through the binary tree
 void search(TreeNode* root, treemap& inRoots, hashmap& toDelete, TreeNode *parent){
     if(root == NULL)
         return;
+
     // Check if this node needs to be deleted
     if(toDelete.find(root->val) != toDelete.end()){
         // Add children to roots
@@ -33,7 +35,7 @@ void search(TreeNode* root, treemap& inRoots, hashmap& toDelete, TreeNode *paren
         if(inRoots.find(root) != inRoots.end())
             inRoots[root] = false;
 
-        // Trim the tree
+        // Trim the tree (set parent node pointer to NULL)
         if(parent != NULL){
             if(parent->left == root){
                 parent->left = NULL;
@@ -42,6 +44,8 @@ void search(TreeNode* root, treemap& inRoots, hashmap& toDelete, TreeNode *paren
             }
         }
     }
+
+    // Recursive calls
     search(root->left, inRoots, toDelete, root);
     search(root->right, inRoots, toDelete, root);
 }
@@ -52,7 +56,7 @@ public:
     vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete) {
         // Vector of roots
         vector<TreeNode*> roots;
-        // Hashmap of root
+        // Hashmap of roots in the forest
         treemap inRoots;
         // Hashmap of deletes
         hashmap toDelete;
@@ -61,6 +65,7 @@ public:
             toDelete.insert({to_delete[i], true});
         }
 
+        // Insert the root of the tree, unless it should be deleted
         if(toDelete.find(root->val) == toDelete.end()){
             inRoots[root] = true;
         }
@@ -68,7 +73,7 @@ public:
         // Search the tree
         search(root, inRoots, toDelete, NULL);
 
-        // Add roots to vector
+        // Add roots from hashmap to vector
         for(auto it : inRoots){
             if(it.second)
                 roots.push_back(it.first);
