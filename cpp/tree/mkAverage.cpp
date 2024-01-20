@@ -39,46 +39,124 @@
 // Solution: Keep a binary tree for efficient insertion and retrieval of both max and min
 // Keep a seperate vector of pointers to nodes to delete them from the tree
 
-struct TreeNode{
-    TreeNode *parent;
-    TreeNode *left;
-    TreeNode *right;
+struct TNode{
+    TNode *parent;
+    TNode *left;
+    TNode *right;
     int val;
+};
+
+TNode* findMax(TNode *node){
+    if(node->right != NULL) // Keep going right until there is none
+        return findMax(node->right);
+    return node;
 }
 
-void insert(TreeNode *newnode, TreeNode *node, TreeNode *parent){
+void insert(TNode *newnode, TNode *node, TNode *parent){
     // Less than case
     if(newnode->val < node->val){
         if(node->left == NULL){
             node->left = newnode; // insert in empty spot
+            newnode->parent = node;
         }else{
             insert(newnode, node->left, node); // or go to next node
         }
     }else{ // Greater than case
         if(node->right == NULL){
             node->right = newnode; //insert in empty spot
+            newnode->parent = node;
         }else{
             insert(newnode, node->right, node);
         }
     }
 }
 
-void delNode(TreeNode *node){
-    
+TNode* delNode(TNode *node){
+    TNode *replacement = NULL; // The node to replace this node
+    // Check if it has only 1 child (easy case)
+    if(node->left == NULL){
+        replacement = node->right; // could be NULL, but doesn't matter
+    }else if(node->right == NULL){
+        replacement = node->left;
+    }else{ // It has 2 children
+        replacement = findMax(node->left); // Find max node in left subtree
+        // Remove replacement from left subtree
+        if(replacement->parent->left == replacement){ // NULL parent's pointer
+            replacement->parent->left = NULL; // This only happens if replacement was root of left subtree
+        }else{
+            replacement->parent->right = NULL;
+        }
+        // Insert replacement into deleted node's position
+        replacement->parent = node->parent; // Set replacement's pointers
+        replacement->left = node->left;
+        replacement->right = node->right;
+        if(node->parent != NULL){ // Set parent's pointers
+            if(node->parent->left == node){
+                node->parent->left = replacement;
+            }else{
+                node->parent->right = replacement;
+            }
+        }
+    }
+    return replacement;
 }
+
+int sumKsmallest(TNode *node, int sum, int &count, int k){
+    // Go left
+    if(node->left != NULL){
+        sum = sumKsmallest(node->left, sum, count, k);
+    }
+    // Add self if appropriate
+    if(count < k){
+        sum += node->val;
+        count++;
+    }
+    // Go right if appropriate
+    if(count < k && node->right != NULL){
+        sum = sumKsmallest(node->right, sum, count, k);
+    }
+    return sum;
+}
+
+int sumKlargest(TNode *node, int sum, int &count, int k){
+    // Go right
+    if(node->right != NULL){
+        sum = sumKlargest(node->right, sum, count, k);
+    }
+    // Add self if appropriate
+    if(count < k){
+        sum += node->val;
+        count++;
+    }
+    // Go right if appropriate
+    if(count < k && node->left != NULL){
+        sum = sumKlargest(node->left, sum, count, k);
+    }
+    return sum;
+}
+
 
 class MKAverage {
 public:
+    vector<TNode *> nodes;
+    TNode *root;
+    int M;
+    int K;
+    int sum;
+
     MKAverage(int m, int k) {
-        vector<TreeNode *> nodes;
-        TreeNode *root;
-        int M = m;
-        int K = k;
+        root = NULL;
+        M = m;
+        K = k;
+        sum = 0;
     }
     
     void addElement(int num) {
-        // Create new treenode
-        TreeNode *newnode = new TreeNode();
+        // Add to sum
+        sum += num;
+
+        // Create new TNode
+        TNode *newnode = new TNode();
         newnode->val = num;
 
         // Insert into vector
@@ -93,15 +171,32 @@ public:
 
         // Delete old node
         if(nodes.size() >= M){
-            delNode(nodes[0]); // Remove from tree
-            nodes.erase(nodes.begin()); // Remove from vector
+            // Subtract from sum
+            sum -= nodes[0]->val;
+
+            // Remove from tree
+            TNode *replacement = delNode(nodes[0]); 
+            if(nodes[0] == root) // if we deleted the root
+                root = replacement; // set the root to the node that replaced the root
+
+            // Remove from vector
+            nodes.erase(nodes.begin()); 
         }
     }
-    
+ 
     int calculateMKAverage() {
-        
+        int count0 = 0;
+        int count1 = 0;
+        return sum - sumKsmallest(root, 0, count0, K) - sumKlargest(root, 0, count1, K);
     }
 };
+
+/**
+ * Your MKAverage object will be instantiated and called as such:
+ * MKAverage* obj = new MKAverage(m, k);
+ * obj->addElement(num);
+ * int param_2 = obj->calculateMKAverage();
+ */
 
 /**
  * Your MKAverage object will be instantiated and called as such:
