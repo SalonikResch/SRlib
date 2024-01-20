@@ -40,9 +40,9 @@
 // Keep a seperate vector of pointers to nodes to delete them from the tree
 
 struct TNode{
-    TNode *parent;
-    TNode *left;
-    TNode *right;
+    TNode *parent = NULL;
+    TNode *left = NULL;
+    TNode *right = NULL;
     int val;
 };
 
@@ -50,6 +50,14 @@ TNode* findMax(TNode *node){
     if(node->right != NULL) // Keep going right until there is none
         return findMax(node->right);
     return node;
+}
+
+void printTree(TNode *node){
+    if(node == NULL)
+        return;
+    printTree(node->left);
+    cout << node->val << ", ";
+    printTree(node->right);
 }
 
 void insert(TNode *newnode, TNode *node, TNode *parent){
@@ -71,13 +79,29 @@ void insert(TNode *newnode, TNode *node, TNode *parent){
     }
 }
 
+
 TNode* delNode(TNode *node){
     TNode *replacement = NULL; // The node to replace this node
-    // Check if it has only 1 child (easy case)
-    if(node->left == NULL){
-        replacement = node->right; // could be NULL, but doesn't matter
-    }else if(node->right == NULL){
-        replacement = node->left;
+    // Check if it has less than 2 children (easy case)
+    if(node->left == NULL || node->right == NULL){
+        // Find one that is NULL
+        if(node->left == NULL){
+            replacement = node->right; // could be NULL, but doesn't matter
+        }else{
+            replacement = node->left;
+        }
+        // Set parent's pointers
+        if(node->parent != NULL){ // Set parent's pointers
+            if(node->parent->left == node){
+                node->parent->left = replacement;
+            }else{
+                node->parent->right = replacement;
+            }
+        }
+        // Set replacement pointers
+        if(replacement != NULL){
+            replacement->parent = node->parent;
+        }
     }else{ // It has 2 children
         replacement = findMax(node->left); // Find max node in left subtree
         // Remove replacement from left subtree
@@ -90,7 +114,10 @@ TNode* delNode(TNode *node){
         replacement->parent = node->parent; // Set replacement's pointers
         replacement->left = node->left;
         replacement->right = node->right;
-        if(node->parent != NULL){ // Set parent's pointers
+        // Set right child's parents
+        node->right->parent = replacement;
+        // Set parent's pointers
+        if(node->parent != NULL){ 
             if(node->parent->left == node){
                 node->parent->left = replacement;
             }else{
@@ -128,7 +155,7 @@ int sumKlargest(TNode *node, int sum, int &count, int k){
         sum += node->val;
         count++;
     }
-    // Go right if appropriate
+    // Go left if appropriate
     if(count < k && node->left != NULL){
         sum = sumKlargest(node->left, sum, count, k);
     }
@@ -170,7 +197,7 @@ public:
         }
 
         // Delete old node
-        if(nodes.size() >= M){
+        if(nodes.size() > M){
             // Subtract from sum
             sum -= nodes[0]->val;
 
@@ -185,11 +212,24 @@ public:
     }
  
     int calculateMKAverage() {
-        int count0 = 0;
+        // Return -1 if fewer than M elements
+        if(nodes.size() < M)
+            return -1;
+
+        // Counters to help sum nodes of tree
+        int count0 = 0; // counts are shared by recursive calls to decide when to stop summing
         int count1 = 0;
-        return sum - sumKsmallest(root, 0, count0, K) - sumKlargest(root, 0, count1, K);
+        int s = sum - sumKsmallest(root, 0, count0, K) - sumKlargest(root, 0, count1, K); // sum of all minus k largest and smallest
+        return s / (M-2*K); // average
     }
 };
+
+/**
+ * Your MKAverage object will be instantiated and called as such:
+ * MKAverage* obj = new MKAverage(m, k);
+ * obj->addElement(num);
+ * int param_2 = obj->calculateMKAverage();
+ */
 
 /**
  * Your MKAverage object will be instantiated and called as such:
