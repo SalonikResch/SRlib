@@ -57,17 +57,20 @@ public:
         for(unsigned int i=0;i<n;i++)
             id[i] = i;
 
+        // Create 2d vector
         vector<vector<int>> groups;
         for(unsigned int i=0;i<n;i++){
+            // Each vector is length 1, containing the int i
             groups.push_back(vector<int>(1, i));
         }
 
-        int maxGroupSize = 1;
+        // Go over the logs
         for(int i=0;i<logs.size();i++){
             unsigned int time = logs[i][0];
             unsigned int p1 = logs[i][1];
             unsigned int p2 = logs[i][2];
 
+            // destination and source groups
             unsigned int d, s;
 
             // Add the smaller group to larger group
@@ -79,7 +82,7 @@ public:
                 s = id[p1];
             }
 
-            // Check for same group
+            // Check for same group, no copying needed
             if(d == s){
                 continue;
             }
@@ -89,6 +92,8 @@ public:
                 id[groups[s][j]] = id[groups[d][0]]; // update IDs
             }
             groups[s].clear();
+            
+            // Check for satisfying condition
             if(groups[d].size() == n){
                 return time;
             }          
